@@ -1,0 +1,70 @@
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">This Week's NFL Games</h2>
+  <div *ngIf="loading" class="text-center my-5">
+    <div class="spinner-border"></div>
+  </div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <form *ngIf="!loading && events.length" (ngSubmit)="submitPick()">
+
+    @for(event of events; track event.id) {
+      @if(event.bookmakers.length !== 0) {
+        <div class="card mb-4">
+          <div class="card-header bg-dark text-light d-flex justify-content-center">
+            <span>{{ event.commence_time | date:'EEEE MMM dd hh:mm a' }}</span>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let bookmaker of event.bookmakers">
+              <table class="table table-sm table-bordered align-middle">
+                <thead>
+                  <tr>
+                    <th class="text-center" style="width:5%;"></th>
+                    <th class="text-center" style="width:55%;">Team</th>
+                    <th class="text-center" style="width:20%;">Line</th>
+                    <th class="text-center" style="width:20%;">Pick</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let market of bookmaker.markets">
+                    <tr *ngFor="let outcome of market.outcomes">
+                      <td class="text-center" style="width:5%;">
+                        <img
+                          *ngIf="getTeamAbbr(outcome.name)"
+                          [src]="'assets/nfl/' + getTeamAbbr(outcome.name) + '.png'"
+                          alt="{{ outcome.name }}"
+                          style="height: 24px; width: 24px; vertical-align: middle; margin-right: 6px;"
+                        /></td>
+                      <td class="text-center" style="width:55%;">
+                        {{ outcome.name }}
+                      </td>
+                      <td class="text-center" style="width:20%;">{{ outcome.point || '-' }}</td>
+                      <td class="text-center" style="width:20%;">
+                        <input
+                          type="radio"
+                          name="pick"
+                          [value]="event.id + outcome.name + bookmaker.key + market.key"
+                          [checked]="selected?.eventId === event.id && selected?.team === outcome.name"
+                          (change)="selectPick(event.id, outcome.name, outcome.point)"
+                          [disabled]="submitting"
+                        />
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+    }
+
+    <div class="text-center">
+      <button class="btn btn-primary" type="submit" [disabled]="!selected || submitting">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+        Submit Pick
+      </button>
+    </div>
+  </form>
+  <div *ngIf="!loading && !events.length" class="alert alert-info text-center">
+    No games found for this week.
+  </div>
+</div>
